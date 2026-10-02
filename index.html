@@ -108,7 +108,7 @@ canvas { display: block; }
     <div class="row"><button id="bothBtn">Download both</button><span class="msg" id="outMsg"></span></div>
     <div class="notes">
       <p>Files arrive inside a .zip, because this page can only hand out zip files. Open it and the .wav or .mid is inside.</p>
-      <p>The WAV is rebuilt with this page's own synth instruments, so it sounds close to the game but not identical. Roblox doesn't let audio leave the game directly. For the exact in-game sound of a custom audio ID, load the MIDI into a music program and pick your own instruments.</p>
+      <p>Roblox doesn't let audio leave the game, so the WAV is rebuilt here. Synth sounds (supersaw, pads, plucks, synth basses) use the same patches as the game. Recorded instruments like piano, guitar and the drum kits are imitated, so they sound close but not identical. For a custom audio ID, load the MIDI into a music program and pick your own instruments.</p>
     </div>
   </section>
 </div>
@@ -118,8 +118,29 @@ canvas { display: block; }
 "use strict";
 const DEMO = "BLOXWAVE1.eyJicG0iOjk2LCJzd2luZyI6MC4xNSwidiI6MSwibWFzdGVyIjowLjgsIm5hbWUiOiJOaWdodCBEcml2ZSAoRGVtbykiLCJ0cmFja3MiOlt7Im5vdGVzIjpbWzAsMzYsMSwxMDBdLFs3LDM2LDEsNzBdLFsxMCwzNiwxLDkwXSxbNCwzOCwxLDkwXSxbMTIsMzgsMSw5MF0sWzEyLDM5LDEsNjBdLFswLDQyLDEsNzVdLFsyLDQyLDEsNTBdLFs0LDQyLDEsNzVdLFs2LDQyLDEsNTBdLFs4LDQyLDEsNzVdLFsxMCw0MiwxLDUwXSxbMTIsNDIsMSw3NV0sWzE0LDQyLDEsNTBdLFsxNSw0NiwxLDUwXSxbMCw0OSwxLDYwXSxbMTYsMzYsMSwxMDBdLFsyMywzNiwxLDcwXSxbMjYsMzYsMSw5MF0sWzIwLDM4LDEsOTBdLFsyOCwzOCwxLDkwXSxbMjgsMzksMSw2MF0sWzE2LDQyLDEsNzVdLFsxOCw0MiwxLDUwXSxbMjAsNDIsMSw3NV0sWzIyLDQyLDEsNTBdLFsyNCw0MiwxLDc1XSxbMjYsNDIsMSw1MF0sWzI4LDQyLDEsNzVdLFszMCw0MiwxLDUwXSxbMzEsNDYsMSw1MF0sWzMyLDM2LDEsMTAwXSxbMzksMzYsMSw3MF0sWzQyLDM2LDEsOTBdLFszNiwzOCwxLDkwXSxbNDQsMzgsMSw5MF0sWzQ0LDM5LDEsNjBdLFszMiw0MiwxLDc1XSxbMzQsNDIsMSw1MF0sWzM2LDQyLDEsNzVdLFszOCw0MiwxLDUwXSxbNDAsNDIsMSw3NV0sWzQyLDQyLDEsNTBdLFs0NCw0MiwxLDc1XSxbNDYsNDIsMSw1MF0sWzQ3LDQ2LDEsNTBdLFs0OCwzNiwxLDEwMF0sWzU1LDM2LDEsNzBdLFs1OCwzNiwxLDkwXSxbNTIsMzgsMSw5MF0sWzYwLDM4LDEsOTBdLFs2MCwzOSwxLDYwXSxbNDgsNDIsMSw3NV0sWzUwLDQyLDEsNTBdLFs1Miw0MiwxLDc1XSxbNTQsNDIsMSw1MF0sWzU2LDQyLDEsNzVdLFs1OCw0MiwxLDUwXSxbNjAsNDIsMSw3NV0sWzYyLDQyLDEsNTBdLFs2Myw0NiwxLDUwXV0sInR1bmUiOjAsInZvbCI6MC44LCJjaWQiOiIiLCJjcm9vdCI6NjAsImluc3QiOiJkcnVtcyIsIm5hbWUiOiJEcnVtcyIsInNvbG8iOmZhbHNlLCJtdXRlIjpmYWxzZSwiZ20iOjAsImZ4Ijp7ImVjaG8iOjAsImRpc3QiOjAsImNob3J1cyI6MCwidG9uZSI6MCwicmV2ZXJiIjowfSwiZHJ1bSI6dHJ1ZX0seyJub3RlcyI6W1swLDMzLDYsOTVdLFsxMCwzMyw0LDgwXSxbMTYsMjksNiw5NV0sWzI2LDI5LDQsODBdLFszMiwzNiw2LDk1XSxbNDIsMzYsNCw4MF0sWzQ4LDMxLDYsOTVdLFs1OCwzMSw0LDgwXV0sInR1bmUiOjAsInZvbCI6MC44NSwiY2lkIjoiIiwiY3Jvb3QiOjYwLCJpbnN0IjoiODA4IiwibmFtZSI6IjgwOCIsInNvbG8iOmZhbHNlLCJtdXRlIjpmYWxzZSwiZ20iOjM4LCJmeCI6eyJlY2hvIjowLCJkaXN0IjowLCJjaG9ydXMiOjAsInRvbmUiOjAsInJldmVyYiI6MH0sImRydW0iOmZhbHNlfSx7Im5vdGVzIjpbWzAsNTcsNiw2MF0sWzYsNTcsNCw1MF0sWzEwLDU3LDYsNTVdLFswLDYwLDYsNjBdLFs2LDYwLDQsNTBdLFsxMCw2MCw2LDU1XSxbMCw2NCw2LDYwXSxbNiw2NCw0LDUwXSxbMTAsNjQsNiw1NV0sWzE2LDUzLDYsNjBdLFsyMiw1Myw0LDUwXSxbMjYsNTMsNiw1NV0sWzE2LDU3LDYsNjBdLFsyMiw1Nyw0LDUwXSxbMjYsNTcsNiw1NV0sWzE2LDYwLDYsNjBdLFsyMiw2MCw0LDUwXSxbMjYsNjAsNiw1NV0sWzMyLDU1LDYsNjBdLFszOCw1NSw0LDUwXSxbNDIsNTUsNiw1NV0sWzMyLDYwLDYsNjBdLFszOCw2MCw0LDUwXSxbNDIsNjAsNiw1NV0sWzMyLDY0LDYsNjBdLFszOCw2NCw0LDUwXSxbNDIsNjQsNiw1NV0sWzQ4LDU1LDYsNjBdLFs1NCw1NSw0LDUwXSxbNTgsNTUsNiw1NV0sWzQ4LDU5LDYsNjBdLFs1NCw1OSw0LDUwXSxbNTgsNTksNiw1NV0sWzQ4LDYyLDYsNjBdLFs1NCw2Miw0LDUwXSxbNTgsNjIsNiw1NV1dLCJ0dW5lIjowLCJ2b2wiOjAuNiwiY2lkIjoiIiwiY3Jvb3QiOjYwLCJpbnN0IjoicGlhbm8iLCJuYW1lIjoiS2V5cyIsInNvbG8iOmZhbHNlLCJtdXRlIjpmYWxzZSwiZ20iOjAsImZ4Ijp7ImVjaG8iOjAsImRpc3QiOjAsImNob3J1cyI6MCwidG9uZSI6MCwicmV2ZXJiIjowLjQ1fSwiZHJ1bSI6ZmFsc2V9LHsibm90ZXMiOltbMCw2OSwyLDgwXSxbMiw3MiwyLDYwXSxbNCw3NiwyLDgwXSxbNiw3MiwyLDYwXSxbOCw3NiwyLDgwXSxbMTAsNzIsMiw2MF0sWzEyLDY5LDIsODBdLFsxNCw3MiwyLDYwXSxbMTYsNjUsMiw4MF0sWzE4LDY5LDIsNjBdLFsyMCw3MiwyLDgwXSxbMjIsNjksMiw2MF0sWzI0LDcyLDIsODBdLFsyNiw2OSwyLDYwXSxbMjgsNjUsMiw4MF0sWzMwLDY5LDIsNjBdLFszMiw2NywyLDgwXSxbMzQsNzIsMiw2MF0sWzM2LDc2LDIsODBdLFszOCw3MiwyLDYwXSxbNDAsNzYsMiw4MF0sWzQyLDcyLDIsNjBdLFs0NCw2NywyLDgwXSxbNDYsNzIsMiw2MF0sWzQ4LDY3LDIsODBdLFs1MCw3MSwyLDYwXSxbNTIsNzQsMiw4MF0sWzU0LDcxLDIsNjBdLFs1Niw3NCwyLDgwXSxbNTgsNzEsMiw2MF0sWzYwLDY3LDIsODBdLFs2Miw3MSwyLDYwXV0sInR1bmUiOjAsInZvbCI6MC41NSwiY2lkIjoiIiwiY3Jvb3QiOjYwLCJpbnN0IjoicGx1Y2siLCJuYW1lIjoiTGVhZCIsInNvbG8iOmZhbHNlLCJtdXRlIjpmYWxzZSwiZ20iOjgwLCJmeCI6eyJlY2hvIjowLjQsImRpc3QiOjAsImNob3J1cyI6MCwidG9uZSI6MCwicmV2ZXJiIjowLjN9LCJkcnVtIjpmYWxzZX1dLCJmb3JtYXQiOiJibG94d2F2ZSIsInN0ZXBzUGVyQmFyIjoxNiwiYmFycyI6NH0=";
 
-const COLORS = { piano:"#69a0ff", strings:"#be78ff", eguitar:"#ff5f6e", bassgtr:"#ffb446", synthbass:"#ff8c3c", "808":"#f046a0", pluck:"#50e1b4", drums:"#fadc5a", custom:"#a0aabe" };
-const INST_NAMES = { piano:"Grand Piano", strings:"Strings", eguitar:"Electric Guitar", bassgtr:"Bass Guitar", synthbass:"Synth Bass", "808":"808 Bass", pluck:"Pluck Lead", drums:"Drum Kit", custom:"Custom Sample" };
+const COLORS = { piano:"#69a0ff", organ:"#968cff", ekeys:"#78beff", bell:"#aadcff", supersaw:"#ff785a", sawlead:"#ff9650", squarelead:"#ffc850", screech:"#ff3c78", chip:"#8cff78", flute:"#c8f0a0", eguitar:"#ff5f6e", pluck:"#50e1b4", sawpluck:"#5aebc8", bellpluck:"#78f5e6", strings:"#be78ff", softpad:"#c896ff", glasspad:"#d7afff", warmpad:"#b482f0", "808":"#f046a0", subbass:"#e65078", reese:"#ff5a5a", electrobass:"#ff783c", synthbass:"#ff8c3c", bassgtr:"#ffb446", drums:"#fadc5a", housekit:"#fac846", hardkit:"#ffaa3c", trapkit:"#f0e678", custom:"#a0aabe" };
+const INST_NAMES = { piano:"Grand Piano", organ:"Organ", ekeys:"Sine Keys", bell:"Bell", supersaw:"Supersaw", sawlead:"Saw Lead", squarelead:"Square Lead", screech:"Hardstyle Screech", chip:"Chiptune", flute:"Flute", eguitar:"Electric Guitar", pluck:"Pluck Lead", sawpluck:"Saw Pluck", bellpluck:"Glass Pluck", strings:"Strings", softpad:"Soft Pad", glasspad:"Glass Pad", warmpad:"Warm Pad", "808":"808 Bass", subbass:"Sub Bass", reese:"Reese Bass", electrobass:"Electro Bass", synthbass:"Synth Bass", bassgtr:"Bass Guitar", drums:"Classic Kit", housekit:"House Kit (909)", hardkit:"Hardstyle Kit", trapkit:"Trap Kit", custom:"Custom Sample" };
+// Synth patches, mirrored from the game's Instruments module: oscillator layers + ADSR envelope
+const SYNTHS = {
+  ekeys:{ layers:[{w:"sine"},{w:"sine",o:1,g:.35},{w:"triangle",o:2,g:.12}], env:[.004,.9,.25,.35], gain:.6 },
+  bell:{ layers:[{w:"sine"},{w:"sine",o:2,c:5,g:.5},{w:"sine",o:1,c:702,g:.25}], env:[.002,1.2,0,.6], gain:.55 },
+  supersaw:{ layers:[{w:"sawtooth",c:-22},{w:"sawtooth",c:-11},{w:"sawtooth"},{w:"sawtooth",c:11},{w:"sawtooth",c:22},{w:"sawtooth",o:-1,g:.6}], env:[.01,.35,.8,.28], gain:.4 },
+  sawlead:{ layers:[{w:"sawtooth",c:-7},{w:"sawtooth",c:7}], env:[.005,.2,.85,.1], gain:.45 },
+  squarelead:{ layers:[{w:"square",c:-5},{w:"square",c:5,o:1,g:.4}], env:[.004,.2,.8,.08], gain:.38 },
+  screech:{ layers:[{w:"sawtooth",c:-30},{w:"sawtooth",c:30},{w:"square",o:1,g:.5},{w:"sawtooth",o:-1,g:.5}], env:[.003,.15,.9,.12], gain:.38 },
+  chip:{ layers:[{w:"square"}], env:[.001,.1,.7,.03], gain:.35 },
+  sawpluck:{ layers:[{w:"sawtooth",c:-10},{w:"sawtooth",c:10},{w:"square",o:1,g:.3}], env:[.002,.18,0,.08], gain:.45 },
+  bellpluck:{ layers:[{w:"triangle"},{w:"sine",o:1,g:.6},{w:"sine",o:2,g:.2}], env:[.002,.3,0,.15], gain:.55 },
+  softpad:{ layers:[{w:"sawtooth",c:-14,g:.6},{w:"sawtooth",c:14,g:.6},{w:"triangle",o:-1}], env:[.45,1,.8,.9], gain:.35 },
+  glasspad:{ layers:[{w:"sine"},{w:"triangle",o:1,c:6,g:.5},{w:"sine",o:1,c:-6,g:.4}], env:[.6,1,.85,1.1], gain:.45 },
+  warmpad:{ layers:[{w:"sawtooth",c:-9,g:.5},{w:"sawtooth",c:9,g:.5},{w:"sine"}], env:[.3,1,.8,.8], gain:.35, lp:1800 },
+  organ:{ layers:[{w:"sine"},{w:"sine",o:1,g:.6},{w:"sine",o:2,g:.35},{w:"square",o:-1,g:.08}], env:[.01,.1,.95,.12], gain:.35 },
+  flute:{ layers:[{w:"sine"},{w:"triangle",o:1,g:.15}], env:[.05,.2,.8,.15], gain:.5 },
+  subbass:{ layers:[{w:"sine"},{w:"triangle",g:.35}], env:[.005,.3,1,.06], gain:.9 },
+  reese:{ layers:[{w:"sawtooth",c:-18},{w:"sawtooth",c:18},{w:"sine",o:-1,g:.8}], env:[.01,.3,1,.08], gain:.45, lp:1400 },
+  electrobass:{ layers:[{w:"square",c:-12},{w:"sawtooth",c:12},{w:"sine",o:-1,g:.7}], env:[.003,.15,.75,.05], gain:.45 },
+};
+const KIT_OF = { drums:"classic", housekit:"house", hardkit:"hardstyle", trapkit:"trap" };
 const $ = id => document.getElementById(id);
 let song = null, rendered = null, playing = null, ctxLive = null;
 
@@ -141,7 +162,7 @@ function decode(text) {
   for (const t of json.tracks.slice(0, 16)) {
     const fx = t.fx || {};
     s.tracks.push({
-      name: String(t.name || "Track").slice(0, 40), inst: INST_NAMES[t.inst] ? t.inst : "piano",
+      name: String(t.name || "Track").slice(0, 40), inst: INST_NAMES[t.inst] ? t.inst : (t.drum ? "drums" : "piano"),
       drum: !!t.drum, gm: Math.floor(num(t.gm, 0, 0, 127)), vol: num(t.vol, 0.8, 0, 1), tune: Math.round(num(t.tune, 0, -24, 24)),
       mute: !!t.mute, solo: !!t.solo,
       fx: { reverb: num(fx.reverb, 0, 0, 1), echo: num(fx.echo, 0, 0, 1), dist: num(fx.dist, 0, 0, 1), chorus: num(fx.chorus, 0, 0, 1), tone: num(fx.tone, 0, -1, 1) },
@@ -229,7 +250,25 @@ function playMelodic(ctx, inst, out, f, t, d, v) {
       const o = ctx.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(f * 2.2, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.06); o.connect(ws); o.start(t); o.stop(end + 0.3); break; }
     case "pluck": { const lp = ctx.createBiquadFilter(); lp.frequency.setValueAtTime(5200, t); lp.frequency.exponentialRampToValueAtTime(500, t + 0.3);
       const g = env(ctx, out, t, 0.002, v * 0.3, 0.12, 0.1, end, 0.06); lp.connect(g); osc(ctx, "square", f, t, end + 0.3, lp); osc(ctx, "sawtooth", f * 2, t, end + 0.3, (() => { const q = ctx.createGain(); q.gain.value = 0.3; q.connect(lp); return q; })()); break; }
-    default: { const g = env(ctx, out, t, 0.01, v * 0.4, 0.3, 0.5, end, 0.2); osc(ctx, "triangle", f, t, end + 0.4, g); osc(ctx, "sine", f, t, end + 0.4, g); }
+    default: {
+      const sp = SYNTHS[inst];
+      if (sp) {
+        const [a, d, su, r] = sp.env;
+        let dest = out;
+        if (sp.lp) { const lp = ctx.createBiquadFilter(); lp.frequency.value = sp.lp; lp.connect(out); dest = lp; }
+        const g = ctx.createGain(); const peak = v * sp.gain;
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t + a);
+        g.gain.setTargetAtTime(peak * su, t + a, Math.max(d, 0.01) / 3);
+        const stopAt = su <= 0 ? Math.min(end, t + a + d * 3) : end;
+        g.gain.setTargetAtTime(0, stopAt, Math.max(r, 0.02) / 4);
+        g.connect(dest);
+        for (const L of sp.layers) {
+          const lg = ctx.createGain(); lg.gain.value = L.g ?? 1; lg.connect(g);
+          osc(ctx, L.w, f * Math.pow(2, (L.o || 0)), t, stopAt + r + 0.3, lg, L.c || 0);
+        }
+        break;
+      }
+      const g = env(ctx, out, t, 0.01, v * 0.4, 0.3, 0.5, end, 0.2); osc(ctx, "triangle", f, t, end + 0.4, g); osc(ctx, "sine", f, t, end + 0.4, g); }
   }
 }
 function noiseHit(ctx, noise, out, t, v, type, freq, q, decay) {
@@ -237,7 +276,21 @@ function noiseHit(ctx, noise, out, t, v, type, freq, q, decay) {
   const g = ctx.createGain(); g.gain.setValueAtTime(v, t); g.gain.setTargetAtTime(0, t + 0.002, decay);
   s.connect(flt); flt.connect(g); g.connect(out); s.start(t, Math.random() * 0.5); s.stop(t + decay * 7);
 }
-function playDrum(ctx, noise, out, p, t, v) {
+function playDrum(ctx, noise, out, p, t, v, kit) {
+  if (kit === "hardstyle" && (p === 36 || p === 35)) { // distorted, pitched hardstyle kick / reverse-bass tail
+    const o = ctx.createOscillator(), g = ctx.createGain(), ws = ctx.createWaveShaper(); ws.curve = driveCurve(0.8);
+    o.frequency.setValueAtTime(p === 36 ? 220 : 90, t); o.frequency.exponentialRampToValueAtTime(p === 36 ? 52 : 50, t + (p === 36 ? 0.08 : 0.15));
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * (p === 36 ? 0.9 : 0.55), t + (p === 36 ? 0.002 : 0.05)); g.gain.setTargetAtTime(0, t + (p === 36 ? 0.12 : 0.1), 0.05);
+    o.connect(ws); ws.connect(g); g.connect(out); o.start(t); o.stop(t + 0.6); return;
+  }
+  if (kit === "trap" && p === 36) { // long 808 kick
+    const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.1);
+    g.gain.setValueAtTime(v * 1.1, t); g.gain.setTargetAtTime(0, t + 0.05, 0.35); o.connect(g); g.connect(out); o.start(t); o.stop(t + 1.8); return;
+  }
+  if (p === 51) { noiseHit(ctx, noise, out, t, v * 0.22, "highpass", 6000, 0.5, 0.28); noiseHit(ctx, noise, out, t, v * 0.15, "bandpass", 3500, 8, 0.2); return; }
+  if (p === 70) { noiseHit(ctx, noise, out, t, v * 0.3, "bandpass", 6500, 1.2, 0.025); return; }
+  if (p === 45) { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(200, t); o.frequency.exponentialRampToValueAtTime(95, t + 0.2);
+    g.gain.setValueAtTime(v * 0.8, t); g.gain.setTargetAtTime(0, t + 0.01, 0.1); o.connect(g); g.connect(out); o.start(t); o.stop(t + 0.7); return; }
   if (p === 36 || p === 35) { const o = ctx.createOscillator(), g = ctx.createGain(); const top = p === 36 ? 150 : 200;
     o.frequency.setValueAtTime(top, t); o.frequency.exponentialRampToValueAtTime(p === 36 ? 45 : 55, t + 0.12);
     g.gain.setValueAtTime(v * 1.1, t); g.gain.setTargetAtTime(0, t + 0.01, p === 36 ? 0.12 : 0.08); o.connect(g); g.connect(out); o.start(t); o.stop(t + 0.8);
@@ -273,7 +326,7 @@ async function renderSong(s) {
       vol.connect(cv); cv.connect(wet); wet.connect(master); }
     for (const n of tr.notes) {
       const t = n.s * stepDur + (n.s % 2 ? s.swing * stepDur * 0.5 : 0) + 0.01;
-      if (tr.drum) playDrum(ctx, noise, input, n.p, t, n.v);
+      if (tr.drum) playDrum(ctx, noise, input, n.p, t, n.v, KIT_OF[tr.inst] || "classic");
       else playMelodic(ctx, tr.inst, input, mtof(n.p + tr.tune), t, n.l * stepDur * 0.97, n.v);
     }
   }
