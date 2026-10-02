@@ -1,8 +1,4 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>Bloxwave Exporter</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -65,8 +61,6 @@ canvas { display: block; }
 @media (prefers-reduced-motion: no-preference) { button { transition: border-color .12s, transform .08s; } button:active:not(:disabled) { transform: translateY(1px); } }
 </style>
 
-</head>
-<body>
 <div class="wrap">
   <header>
     <h1>BLOXWAVE <span>EXPORTER</span></h1>
@@ -156,7 +150,7 @@ const WAVE_CAL = { sine: 0.670, square: 0.527, triangle: 0.656, sawtooth: 0.525 
 const INST_SCALE = { piano: 1.346, organ: 0.499, flute: 0.159, eguitar: 0.860, pluck: 0.080, strings: 0.426, warmpad: 0.178,
   "808": 0.892, synthbass: 0.191, bassgtr: 1.064, custom: 1.0 };
 const DRUM_SCALE = {
-  classic: { 49: 0.605, 51: 0.237, 46: 0.553, 42: 1.754, 70: 0.918, 45: 0.601, 39: 2.540, 40: 0.790, 38: 1.198, 35: 0.471, 36: 0.440 },
+  classic: { 92: 2.159, 57: 1.375, 93: 2.556, 52: 0.422, 49: 0.605, 51: 0.237, 46: 0.553, 42: 1.754, 70: 0.918, 45: 0.601, 39: 2.540, 40: 0.790, 38: 1.198, 35: 0.471, 36: 0.440 },
   house: { 36: 0.349, 35: 0.787, 42: 0.874, 46: 1.049, 38: 1.322, 51: 0.306 },
   hardstyle: { 36: 0.847, 35: 0.564, 39: 0.951, 38: 0.492, 49: 0.171 },
   trap: { 36: 0.2305, 35: 0.787, 39: 1.018, 38: 1.408, 40: 0.247, 42: 0.777 },
@@ -186,13 +180,17 @@ function decode(text) {
   const num = (v, d, lo, hi) => { v = Number(v); return Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d; };
   const s = { name: String(json.name || "Bloxwave Song").slice(0, 60), bpm: num(json.bpm, 120, 40, 300), swing: num(json.swing, 0, 0, 1), bars: Math.floor(num(json.bars, 4, 1, 64)), master: num(json.master, 0.8, 0, 1), tracks: [] };
   const total = s.bars * 16;
+  // automation lanes: [[step, value], ...] (fades and filter sweeps written by the game's generator)
+  const lane = (L, lo, hi) => Array.isArray(L) && L.length ? L.filter(p => Array.isArray(p) && isFinite(p[0]) && isFinite(p[1])).slice(0, 512)
+    .map(p => [Math.max(0, Math.min(total, Math.floor(p[0]))), Math.max(lo, Math.min(hi, +p[1]))]).sort((a, b) => a[0] - b[0]) : null;
   for (const t of json.tracks.slice(0, 16)) {
     const fx = t.fx || {};
     s.tracks.push({
       name: String(t.name || "Track").slice(0, 40), inst: INST_NAMES[t.inst] ? t.inst : (t.drum ? "drums" : "piano"),
       drum: !!t.drum, gm: Math.floor(num(t.gm, 0, 0, 127)), vol: num(t.vol, 0.8, 0, 1), tune: Math.round(num(t.tune, 0, -24, 24)),
       mute: !!t.mute, solo: !!t.solo,
-      fx: { reverb: num(fx.reverb, 0, 0, 1), echo: num(fx.echo, 0, 0, 1), dist: num(fx.dist, 0, 0, 1), chorus: num(fx.chorus, 0, 0, 1), tone: num(fx.tone, 0, -1, 1) },
+      fx: { reverb: num(fx.reverb, 0, 0, 1), echo: num(fx.echo, 0, 0, 1), dist: num(fx.dist, 0, 0, 1), chorus: num(fx.chorus, 0, 0, 1), tone: num(fx.tone, 0, -1, 1), duck: num(fx.duck, 0, 0, 1) },
+      auto: (t.auto && typeof t.auto === "object") ? { vol: lane(t.auto.vol, 0, 1), filt: lane(t.auto.filt, -1, 1) } : null,
       notes: (Array.isArray(t.notes) ? t.notes : []).filter(n => Array.isArray(n) && n[0] >= 0 && n[0] < total)
         .map(n => ({ s: Math.floor(n[0]), p: Math.floor(num(n[1], 60, 0, 127)), l: Math.max(1, Math.min(total - n[0], Math.floor(num(n[2], 1, 1, total)))), v: num(n[3], 80, 1, 100) / 100 }))
     });
@@ -248,6 +246,13 @@ function noiseBuf(ctx, secs) { const b = ctx.createBuffer(1, Math.ceil(secs * ct
 function impulse(ctx, secs) { const len = Math.ceil(secs * ctx.sampleRate), b = ctx.createBuffer(2, len, ctx.sampleRate); for (let ch = 0; ch < 2; ch++) { const d = b.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3); } return b; }
 function driveCurve(amt) { const k = amt * 60, n = 2048, c = new Float32Array(n); for (let i = 0; i < n; i++) { const x = i * 2 / n - 1; c[i] = ((1 + k) * x) / (1 + k * Math.abs(x)); } return c; }
 const dbToGain = db => Math.pow(10, db / 20);
+// value of an automation lane at a step (straight lines between points), same as the game
+function autoVal(pts, step) {
+  if (!pts || !pts.length) return null;
+  if (step <= pts[0][0]) return pts[0][1];
+  for (let i = 1; i < pts.length; i++) { const [a, x] = pts[i - 1], [b, y] = pts[i]; if (step <= b) return b === a ? y : x + (y - x) * (step - a) / (b - a); }
+  return pts[pts.length - 1][1];
+}
 
 function env(ctx, out, t, a, peak, dec, sus, end, rel) {
   const g = ctx.createGain(); g.gain.setValueAtTime(0, t);
@@ -306,6 +311,23 @@ function noiseHit(ctx, noise, out, t, v, type, freq, q, decay) {
   s.connect(flt); flt.connect(g); g.connect(out); s.start(t, Math.random() * 0.5); s.stop(t + decay * 7);
 }
 function playDrum(ctx, noise, out, p, t, v, kit) {
+  if (p === 92 || p === 57 || p === 93) { // riser / reverse crash / downlifter
+    const len = p === 92 ? 7.44 : p === 57 ? 2.24 : 3.13;
+    const src = ctx.createBufferSource(); src.buffer = noise; src.loop = true;
+    const f = ctx.createBiquadFilter(), g = ctx.createGain();
+    if (p === 92) { f.type = "bandpass"; f.Q.value = 1.2; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(9000, t + len);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + len); g.gain.setValueAtTime(0, t + len); }
+    else if (p === 57) { f.type = "highpass"; f.frequency.value = 3500;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + len); g.gain.setValueAtTime(0, t + len); }
+    else { f.type = "bandpass"; f.Q.value = 1.2; f.frequency.setValueAtTime(8000, t); f.frequency.exponentialRampToValueAtTime(250, t + len);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + len * 0.6); g.gain.linearRampToValueAtTime(0, t + len); }
+    src.connect(f); f.connect(g); g.connect(out); src.start(t); src.stop(t + len + 0.05); return;
+  }
+  if (p === 52) { // impact boom
+    const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(75, t); o.frequency.exponentialRampToValueAtTime(32, t + 0.6);
+    g.gain.setValueAtTime(v, t); g.gain.setTargetAtTime(0, t + 0.02, 0.7); o.connect(g); g.connect(out); o.start(t); o.stop(t + 4.4);
+    noiseHit(ctx, noise, out, t, v * 0.6, "lowpass", 900, 0.7, 0.35); return;
+  }
   if (kit === "hardstyle" && (p === 36 || p === 35)) { // distorted, pitched hardstyle kick / reverse-bass tail
     const o = ctx.createOscillator(), g = ctx.createGain(), ws = ctx.createWaveShaper(); ws.curve = driveCurve(0.8);
     o.frequency.setValueAtTime(p === 36 ? 220 : 90, t); o.frequency.exponentialRampToValueAtTime(p === 36 ? 52 : 50, t + (p === 36 ? 0.08 : 0.15));
@@ -348,10 +370,23 @@ async function renderSong(s, onProgress) {
   for (let i = 0; i < cv.length; i++) { const x = i * 2 / (cv.length - 1) - 1, ax = Math.abs(x); cv[i] = ax < 0.9 ? x : Math.sign(x) * (0.9 + 0.099 * Math.tanh((ax - 0.9) / 0.099)); }
   clip.curve = cv; limiter.connect(clip); clip.connect(ctx.destination);
   const anySolo = s.tracks.some(t => t.solo);
+  // Sidechain pump: same as the game - every audible kick ducks PUMP tracks, which then swell back (quad-in release)
+  const kickSteps = [...new Set(s.tracks.filter(t => t.drum && !t.mute && (!anySolo || t.solo))
+    .flatMap(t => t.notes.filter(n => n.p === 36).map(n => n.s)))].sort((a, b) => a - b);
   const events = [];
   for (const tr of s.tracks) {
     if (tr.mute || (anySolo && !tr.solo)) continue;
     const input = ctx.createGain(); let node = input;
+    const A = tr.auto || {};
+    const tAt = st => st * stepDur + 0.01;
+    const automate = (param, pts, map, exp) => {
+      param.setValueAtTime(map(pts[0][1]), 0); param.setValueAtTime(map(pts[0][1]), tAt(pts[0][0]));
+      for (let i = 1; i < pts.length; i++) {
+        const v = map(pts[i][1]), t = tAt(pts[i][0]);
+        if (pts[i][0] === pts[i - 1][0]) param.setValueAtTime(v, t);
+        else if (exp) param.exponentialRampToValueAtTime(Math.max(v, 1e-4), t); else param.linearRampToValueAtTime(v, t);
+      }
+    };
     if (tr.fx.dist > 0.01) { const lvl = 0.15 + tr.fx.dist * 0.8, ws = ctx.createWaveShaper(), mk = ctx.createGain(); ws.curve = driveCurve(lvl); ws.oversample = "2x";
       mk.gain.value = distMakeup(lvl); node.connect(ws); ws.connect(mk); node = mk; }
     if (Math.abs(tr.fx.tone) > 0.02) { const hs = ctx.createBiquadFilter(); hs.type = "highshelf"; hs.frequency.value = 3000; hs.gain.value = tr.fx.tone < 0 ? tr.fx.tone * 24 : tr.fx.tone * 9;
@@ -359,7 +394,26 @@ async function renderSong(s, onProgress) {
     if (tr.fx.chorus > 0.01) { const dry = ctx.createGain(), mix = ctx.createGain(), dl = ctx.createDelay(0.05), lfo = ctx.createOscillator(), dep = ctx.createGain();
       dl.delayTime.value = 0.018; lfo.frequency.value = 0.8; dep.gain.value = 0.004; lfo.connect(dep); dep.connect(dl.delayTime); lfo.start(0);
       const m = tr.fx.chorus * 0.8, wet = ctx.createGain(); wet.gain.value = m; dry.gain.value = 1 - m; node.connect(dry); node.connect(dl); dl.connect(wet); dry.connect(mix); wet.connect(mix); node = mix; }
-    const vol = ctx.createGain(); vol.gain.value = tr.vol * 1.25; node.connect(vol); vol.connect(master);
+    if (A.filt && A.filt.length) { // filter sweeps: below 0 muffles (low-pass), above 0 thins (high-pass)
+      const lp = ctx.createBiquadFilter(), hp = ctx.createBiquadFilter(); lp.type = "lowpass"; hp.type = "highpass"; lp.Q.value = hp.Q.value = 0.7;
+      automate(lp.frequency, A.filt, f => f < 0 ? 20000 * Math.pow(2, f * 5.6) : 20000, true);
+      automate(hp.frequency, A.filt, f => f > 0 ? 20 * Math.pow(2, f * 4.3) : 20, true);
+      node.connect(lp); lp.connect(hp); node = hp;
+    }
+    const vol0 = ctx.createGain(); vol0.gain.value = tr.vol * 1.25; node.connect(vol0);
+    let vol = vol0;
+    if (A.vol && A.vol.length) { const ag = ctx.createGain(); automate(ag.gain, A.vol, x => x, false); vol0.connect(ag); vol = ag; } // fades
+    if (tr.fx.duck > 0.01 && kickSteps.length) {
+      const dg = ctx.createGain(), low = 1 - tr.fx.duck * 0.85, rel = stepDur * 3.2;
+      dg.gain.setValueAtTime(1, 0);
+      kickSteps.forEach((ks, i) => {
+        const t0 = ks * stepDur + 0.01, tEnd = i + 1 < kickSteps.length ? kickSteps[i + 1] * stepDur + 0.01 : Infinity;
+        dg.gain.setValueAtTime(low, t0);
+        for (let k = 1; k <= 6; k++) { const x = k / 6, t = t0 + rel * x; if (t >= tEnd - 0.002) break; dg.gain.linearRampToValueAtTime(low + (1 - low) * x * x, t); }
+      });
+      vol.connect(dg); vol = dg;
+    }
+    vol.connect(master);
     if (tr.fx.echo > 0.01) { const dl = ctx.createDelay(2), fb = ctx.createGain(), wet = ctx.createGain();
       dl.delayTime.value = Math.min(1.5, Math.max(0.05, 60 / s.bpm * 0.75)); fb.gain.value = 0.2 + tr.fx.echo * 0.35; wet.gain.value = dbToGain(-24 + tr.fx.echo * 20) * ECHO_CAL;
       vol.connect(dl); dl.connect(fb); fb.connect(dl); dl.connect(wet); wet.connect(master); }
@@ -432,6 +486,11 @@ function midiBytes(s) {
       const p = Math.max(0, Math.min(127, n.p + (tr.drum ? 0 : tr.tune)));
       ev.push([on, 1, [0x90 | c, p, Math.max(1, Math.round(n.v * 127))]], [off, 0, [0x80 | c, p, 0]]);
     }
+    const A = tr.auto || {};
+    const ccLane = (pts, cc, map) => { if (!pts || !pts.length) return; let lastV = -1;
+      for (let st = pts[0][0]; st <= pts[pts.length - 1][0]; st++) { const v = map(autoVal(pts, st)); if (v !== lastV) { ev.push([st * TPS, 0, [0xb0 | c, cc, v]]); lastV = v; } } };
+    ccLane(A.vol, 11, x => Math.max(0, Math.min(127, Math.round(x * 127))));
+    ccLane(A.filt, 74, x => Math.max(0, Math.min(127, Math.round(64 + x * 63))));
     ev.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
     const d = [0, ...text(3, tr.name), 0, 0xc0 | c, tr.drum ? 0 : tr.gm, 0, 0xb0 | c, 7, Math.round(tr.vol * 127), 0, 0xb0 | c, 91, Math.round(tr.fx.reverb * 127)];
     let last = 0; for (const [t, , m] of ev) { d.push(...vlq(t - last), ...m); last = t; }
@@ -533,5 +592,4 @@ load(DEMO, true);
 })();
 </script>
 
-</body>
-</html>
+</body></html>
