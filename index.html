@@ -1,4 +1,8 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Bloxwave Exporter</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -61,6 +65,8 @@ canvas { display: block; }
 @media (prefers-reduced-motion: no-preference) { button { transition: border-color .12s, transform .08s; } button:active:not(:disabled) { transform: translateY(1px); } }
 </style>
 
+</head>
+<body>
 <div class="wrap">
   <header>
     <h1>BLOXWAVE <span>EXPORTER</span></h1>
@@ -118,8 +124,8 @@ canvas { display: block; }
 "use strict";
 const DEMO = "BLOXWAVE1.eyJicG0iOjk2LCJzd2luZyI6MC4xNSwidiI6MSwibWFzdGVyIjowLjgsIm5hbWUiOiJOaWdodCBEcml2ZSAoRGVtbykiLCJ0cmFja3MiOlt7Im5vdGVzIjpbWzAsMzYsMSwxMDBdLFs3LDM2LDEsNzBdLFsxMCwzNiwxLDkwXSxbNCwzOCwxLDkwXSxbMTIsMzgsMSw5MF0sWzEyLDM5LDEsNjBdLFswLDQyLDEsNzVdLFsyLDQyLDEsNTBdLFs0LDQyLDEsNzVdLFs2LDQyLDEsNTBdLFs4LDQyLDEsNzVdLFsxMCw0MiwxLDUwXSxbMTIsNDIsMSw3NV0sWzE0LDQyLDEsNTBdLFsxNSw0NiwxLDUwXSxbMCw0OSwxLDYwXSxbMTYsMzYsMSwxMDBdLFsyMywzNiwxLDcwXSxbMjYsMzYsMSw5MF0sWzIwLDM4LDEsOTBdLFsyOCwzOCwxLDkwXSxbMjgsMzksMSw2MF0sWzE2LDQyLDEsNzVdLFsxOCw0MiwxLDUwXSxbMjAsNDIsMSw3NV0sWzIyLDQyLDEsNTBdLFsyNCw0MiwxLDc1XSxbMjYsNDIsMSw1MF0sWzI4LDQyLDEsNzVdLFszMCw0MiwxLDUwXSxbMzEsNDYsMSw1MF0sWzMyLDM2LDEsMTAwXSxbMzksMzYsMSw3MF0sWzQyLDM2LDEsOTBdLFszNiwzOCwxLDkwXSxbNDQsMzgsMSw5MF0sWzQ0LDM5LDEsNjBdLFszMiw0MiwxLDc1XSxbMzQsNDIsMSw1MF0sWzM2LDQyLDEsNzVdLFszOCw0MiwxLDUwXSxbNDAsNDIsMSw3NV0sWzQyLDQyLDEsNTBdLFs0NCw0MiwxLDc1XSxbNDYsNDIsMSw1MF0sWzQ3LDQ2LDEsNTBdLFs0OCwzNiwxLDEwMF0sWzU1LDM2LDEsNzBdLFs1OCwzNiwxLDkwXSxbNTIsMzgsMSw5MF0sWzYwLDM4LDEsOTBdLFs2MCwzOSwxLDYwXSxbNDgsNDIsMSw3NV0sWzUwLDQyLDEsNTBdLFs1Miw0MiwxLDc1XSxbNTQsNDIsMSw1MF0sWzU2LDQyLDEsNzVdLFs1OCw0MiwxLDUwXSxbNjAsNDIsMSw3NV0sWzYyLDQyLDEsNTBdLFs2Myw0NiwxLDUwXV0sInR1bmUiOjAsInZvbCI6MC44LCJjaWQiOiIiLCJjcm9vdCI6NjAsImluc3QiOiJkcnVtcyIsIm5hbWUiOiJEcnVtcyIsInNvbG8iOmZhbHNlLCJtdXRlIjpmYWxzZSwiZ20iOjAsImZ4Ijp7ImVjaG8iOjAsImRpc3QiOjAsImNob3J1cyI6MCwidG9uZSI6MCwicmV2ZXJiIjowfSwiZHJ1bSI6dHJ1ZX0seyJub3RlcyI6W1swLDMzLDYsOTVdLFsxMCwzMyw0LDgwXSxbMTYsMjksNiw5NV0sWzI2LDI5LDQsODBdLFszMiwzNiw2LDk1XSxbNDIsMzYsNCw4MF0sWzQ4LDMxLDYsOTVdLFs1OCwzMSw0LDgwXV0sInR1bmUiOjAsInZvbCI6MC44NSwiY2lkIjoiIiwiY3Jvb3QiOjYwLCJpbnN0IjoiODA4IiwibmFtZSI6IjgwOCIsInNvbG8iOmZhbHNlLCJtdXRlIjpmYWxzZSwiZ20iOjM4LCJmeCI6eyJlY2hvIjowLCJkaXN0IjowLCJjaG9ydXMiOjAsInRvbmUiOjAsInJldmVyYiI6MH0sImRydW0iOmZhbHNlfSx7Im5vdGVzIjpbWzAsNTcsNiw2MF0sWzYsNTcsNCw1MF0sWzEwLDU3LDYsNTVdLFswLDYwLDYsNjBdLFs2LDYwLDQsNTBdLFsxMCw2MCw2LDU1XSxbMCw2NCw2LDYwXSxbNiw2NCw0LDUwXSxbMTAsNjQsNiw1NV0sWzE2LDUzLDYsNjBdLFsyMiw1Myw0LDUwXSxbMjYsNTMsNiw1NV0sWzE2LDU3LDYsNjBdLFsyMiw1Nyw0LDUwXSxbMjYsNTcsNiw1NV0sWzE2LDYwLDYsNjBdLFsyMiw2MCw0LDUwXSxbMjYsNjAsNiw1NV0sWzMyLDU1LDYsNjBdLFszOCw1NSw0LDUwXSxbNDIsNTUsNiw1NV0sWzMyLDYwLDYsNjBdLFszOCw2MCw0LDUwXSxbNDIsNjAsNiw1NV0sWzMyLDY0LDYsNjBdLFszOCw2NCw0LDUwXSxbNDIsNjQsNiw1NV0sWzQ4LDU1LDYsNjBdLFs1NCw1NSw0LDUwXSxbNTgsNTUsNiw1NV0sWzQ4LDU5LDYsNjBdLFs1NCw1OSw0LDUwXSxbNTgsNTksNiw1NV0sWzQ4LDYyLDYsNjBdLFs1NCw2Miw0LDUwXSxbNTgsNjIsNiw1NV1dLCJ0dW5lIjowLCJ2b2wiOjAuNiwiY2lkIjoiIiwiY3Jvb3QiOjYwLCJpbnN0IjoicGlhbm8iLCJuYW1lIjoiS2V5cyIsInNvbG8iOmZhbHNlLCJtdXRlIjpmYWxzZSwiZ20iOjAsImZ4Ijp7ImVjaG8iOjAsImRpc3QiOjAsImNob3J1cyI6MCwidG9uZSI6MCwicmV2ZXJiIjowLjQ1fSwiZHJ1bSI6ZmFsc2V9LHsibm90ZXMiOltbMCw2OSwyLDgwXSxbMiw3MiwyLDYwXSxbNCw3NiwyLDgwXSxbNiw3MiwyLDYwXSxbOCw3NiwyLDgwXSxbMTAsNzIsMiw2MF0sWzEyLDY5LDIsODBdLFsxNCw3MiwyLDYwXSxbMTYsNjUsMiw4MF0sWzE4LDY5LDIsNjBdLFsyMCw3MiwyLDgwXSxbMjIsNjksMiw2MF0sWzI0LDcyLDIsODBdLFsyNiw2OSwyLDYwXSxbMjgsNjUsMiw4MF0sWzMwLDY5LDIsNjBdLFszMiw2NywyLDgwXSxbMzQsNzIsMiw2MF0sWzM2LDc2LDIsODBdLFszOCw3MiwyLDYwXSxbNDAsNzYsMiw4MF0sWzQyLDcyLDIsNjBdLFs0NCw2NywyLDgwXSxbNDYsNzIsMiw2MF0sWzQ4LDY3LDIsODBdLFs1MCw3MSwyLDYwXSxbNTIsNzQsMiw4MF0sWzU0LDcxLDIsNjBdLFs1Niw3NCwyLDgwXSxbNTgsNzEsMiw2MF0sWzYwLDY3LDIsODBdLFs2Miw3MSwyLDYwXV0sInR1bmUiOjAsInZvbCI6MC41NSwiY2lkIjoiIiwiY3Jvb3QiOjYwLCJpbnN0IjoicGx1Y2siLCJuYW1lIjoiTGVhZCIsInNvbG8iOmZhbHNlLCJtdXRlIjpmYWxzZSwiZ20iOjgwLCJmeCI6eyJlY2hvIjowLjQsImRpc3QiOjAsImNob3J1cyI6MCwidG9uZSI6MCwicmV2ZXJiIjowLjN9LCJkcnVtIjpmYWxzZX1dLCJmb3JtYXQiOiJibG94d2F2ZSIsInN0ZXBzUGVyQmFyIjoxNiwiYmFycyI6NH0=";
 
-const COLORS = { piano:"#69a0ff", organ:"#968cff", ekeys:"#78beff", bell:"#aadcff", supersaw:"#ff785a", sawlead:"#ff9650", squarelead:"#ffc850", screech:"#ff3c78", chip:"#8cff78", flute:"#c8f0a0", eguitar:"#ff5f6e", pluck:"#50e1b4", sawpluck:"#5aebc8", bellpluck:"#78f5e6", strings:"#be78ff", softpad:"#c896ff", glasspad:"#d7afff", warmpad:"#b482f0", "808":"#f046a0", subbass:"#e65078", reese:"#ff5a5a", electrobass:"#ff783c", synthbass:"#ff8c3c", bassgtr:"#ffb446", drums:"#fadc5a", housekit:"#fac846", hardkit:"#ffaa3c", trapkit:"#f0e678", custom:"#a0aabe" };
-const INST_NAMES = { piano:"Grand Piano", organ:"Organ", ekeys:"Sine Keys", bell:"Bell", supersaw:"Supersaw", sawlead:"Saw Lead", squarelead:"Square Lead", screech:"Hardstyle Screech", chip:"Chiptune", flute:"Flute", eguitar:"Electric Guitar", pluck:"Pluck Lead", sawpluck:"Saw Pluck", bellpluck:"Glass Pluck", strings:"Strings", softpad:"Soft Pad", glasspad:"Glass Pad", warmpad:"Warm Pad", "808":"808 Bass", subbass:"Sub Bass", reese:"Reese Bass", electrobass:"Electro Bass", synthbass:"Synth Bass", bassgtr:"Bass Guitar", drums:"Classic Kit", housekit:"House Kit (909)", hardkit:"Hardstyle Kit", trapkit:"Trap Kit", custom:"Custom Sample" };
+const COLORS = { piano:"#69a0ff", organ:"#968cff", ekeys:"#78beff", bell:"#aadcff", supersaw:"#ff785a", sawlead:"#ff9650", squarelead:"#ffc850", screech:"#ff3c78", chip:"#8cff78", flute:"#c8f0a0", eguitar:"#ff5f6e", pluck:"#50e1b4", sawpluck:"#5aebc8", bellpluck:"#78f5e6", strings:"#be78ff", softpad:"#c896ff", glasspad:"#d7afff", warmpad:"#b482f0", "808":"#f046a0", subbass:"#e65078", reese:"#ff5a5a", electrobass:"#ff783c", synthbass:"#ff8c3c", bassgtr:"#ffb446", drums:"#fadc5a", housekit:"#fac846", hardkit:"#ffaa3c", trapkit:"#f0e678", vox:"#ff8fd0", voxpad:"#f5a3e0", voxhey:"#ff6fb5", custom:"#a0aabe" };
+const INST_NAMES = { piano:"Grand Piano", organ:"Organ", ekeys:"Sine Keys", bell:"Bell", supersaw:"Supersaw", sawlead:"Saw Lead", squarelead:"Square Lead", screech:"Hardstyle Screech", chip:"Chiptune", flute:"Flute", eguitar:"Electric Guitar", pluck:"Pluck Lead", sawpluck:"Saw Pluck", bellpluck:"Glass Pluck", strings:"Strings", softpad:"Soft Pad", glasspad:"Glass Pad", warmpad:"Warm Pad", "808":"808 Bass", subbass:"Sub Bass", reese:"Reese Bass", electrobass:"Electro Bass", synthbass:"Synth Bass", bassgtr:"Bass Guitar", drums:"Classic Kit", housekit:"House Kit (909)", hardkit:"Hardstyle Kit", trapkit:"Trap Kit", vox:"Vocal Chop (Ah)", voxpad:"Vocal Ahh", voxhey:"Vocal Shout (Hey)", custom:"Custom Sample" };
 // Synth patches, mirrored from the game's Instruments module: oscillator layers + ADSR envelope
 const SYNTHS = {
   ekeys:{ layers:[{w:"sine"},{w:"sine",o:1,g:.35},{w:"triangle",o:2,g:.12}], env:[.004,.9,.25,.35], gain:.6 },
@@ -282,6 +288,29 @@ function playMelodic(ctx, inst, out, f, t, d, v) {
       const o = ctx.createOscillator(); o.type = "sine"; o.frequency.setValueAtTime(f * 2.2, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.06); o.connect(ws); o.start(t); o.stop(end + 0.3); break; }
     case "pluck": { const lp = ctx.createBiquadFilter(); lp.frequency.setValueAtTime(5200, t); lp.frequency.exponentialRampToValueAtTime(500, t + 0.3);
       const g = env(ctx, out, t, 0.002, v * 0.3, 0.12, 0.1, end, 0.06); lp.connect(g); osc(ctx, "square", f, t, end + 0.3, lp); osc(ctx, "sawtooth", f * 2, t, end + 0.3, (() => { const q = ctx.createGain(); q.gain.value = 0.3; q.connect(lp); return q; })()); break; }
+    case "vox": case "voxpad": { // sung "ah": a buzzy source through vowel formants (the game uses a recorded voice at C5)
+      const held = inst === "voxpad", speed = f / 523.25;
+      const len = Math.min(d + (held ? 0.4 : 0.08), (held ? 2.0 : 0.42) / speed); // the sample's own length at this pitch
+      const g = ctx.createGain(), pk = v * (held ? 0.5 : 0.6);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(pk, t + (held ? 0.12 : 0.012));
+      g.gain.setTargetAtTime(pk * 0.8, t + 0.05, 0.1); g.gain.setTargetAtTime(0, t + Math.max(len - 0.06, 0.03), 0.03); g.connect(out);
+      const src = ctx.createGain(); src.gain.value = 0.5;
+      for (const [fq, q, gn] of [[800, 5, 1], [1150, 7, 0.55], [2900, 9, 0.22], [3300, 10, 0.12]]) {
+        const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = fq; bp.Q.value = q;
+        const fg = ctx.createGain(); fg.gain.value = gn * 3; src.connect(bp); bp.connect(fg); fg.connect(g);
+      }
+      const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.value = f;
+      const lfo = ctx.createOscillator(), dep = ctx.createGain(); lfo.frequency.value = 5.2; dep.gain.value = f * (held ? 0.012 : 0.004);
+      lfo.connect(dep); dep.connect(o.frequency); o.connect(src); o.start(t); lfo.start(t); o.stop(t + len + 0.2); lfo.stop(t + len + 0.2);
+      break; }
+    case "voxhey": { // short shouted "hey"
+      const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * 0.7, t + 0.01); g.gain.setTargetAtTime(0, t + 0.12, 0.06); g.connect(out);
+      const o = ctx.createOscillator(); o.type = "sawtooth"; o.frequency.setValueAtTime(330, t); o.frequency.exponentialRampToValueAtTime(240, t + 0.3);
+      for (const [fq, q, gn] of [[520, 4, 1], [1900, 8, 0.6], [2600, 9, 0.3]]) {
+        const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = fq; bp.Q.value = q;
+        const fg = ctx.createGain(); fg.gain.value = gn * 2; o.connect(bp); bp.connect(fg); fg.connect(g);
+      }
+      o.start(t); o.stop(t + 0.5); break; }
     default: {
       const sp = SYNTHS[inst];
       if (sp) {
@@ -592,4 +621,5 @@ load(DEMO, true);
 })();
 </script>
 
-</body></html>
+</body>
+</html>
