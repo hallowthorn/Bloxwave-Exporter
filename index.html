@@ -147,6 +147,27 @@ const SYNTHS = {
   electrobass:{ layers:[{w:"square",c:-12},{w:"sawtooth",c:12},{w:"sine",o:-1,g:.7}], env:[.003,.15,.75,.05], gain:.45 },
 };
 const KIT_OF = { drums:"classic", housekit:"house", hardkit:"hardstyle", trapkit:"trap" };
+const GAME_SYNTH = new Set(["ekeys","bell","supersaw","sawlead","squarelead","screech","chip","sawpluck","bellpluck","softpad","glasspad","subbass","reese","electrobass"]);
+/* ---- Loudness calibration ----
+   Measured in Roblox (Sound.PlaybackLoudness at Volume 1) and against this page's own sounds,
+   so each instrument, drum and effect comes out at the same level it plays at in the game.
+   Each factor = game loudness x the game's own instrument/drum gain / this page's raw loudness. */
+const WAVE_CAL = { sine: 0.670, square: 0.527, triangle: 0.656, sawtooth: 0.525 }; // oscillators vs the game's 440 Hz tone assets
+const INST_SCALE = { piano: 1.346, organ: 0.499, flute: 0.159, eguitar: 0.860, pluck: 0.080, strings: 0.426, warmpad: 0.178,
+  "808": 0.892, synthbass: 0.191, bassgtr: 1.064, custom: 1.0 };
+const DRUM_SCALE = {
+  classic: { 49: 0.605, 51: 0.237, 46: 0.553, 42: 1.754, 70: 0.918, 45: 0.601, 39: 2.540, 40: 0.790, 38: 1.198, 35: 0.471, 36: 0.440 },
+  house: { 36: 0.349, 35: 0.787, 42: 0.874, 46: 1.049, 38: 1.322, 51: 0.306 },
+  hardstyle: { 36: 0.847, 35: 0.564, 39: 0.951, 38: 0.492, 49: 0.171 },
+  trap: { 36: 0.2305, 35: 0.787, 39: 1.018, 38: 1.408, 40: 0.247, 42: 0.777 },
+};
+const drumScale = (kit, p) => (DRUM_SCALE[kit] && DRUM_SCALE[kit][p]) ?? DRUM_SCALE.classic[p] ?? 0.5;
+const instScale = id => GAME_SYNTH.has(id) ? 1 : (INST_SCALE[id] ?? 1);
+// Roblox distortion gets louder as Level rises; match its measured loudness at Level 0.15 / 0.55 / 0.95
+const DIST_MAKEUP = [[0.15, 0.391], [0.55, 0.538], [0.95, 0.839]];
+const distMakeup = lvl => { const T = DIST_MAKEUP; if (lvl <= T[0][0]) return T[0][1]; for (let i = 1; i < T.length; i++) if (lvl <= T[i][0]) { const [a, x] = T[i - 1], [b, y] = T[i]; return x + (y - x) * (lvl - a) / (b - a); } return T[T.length - 1][1]; };
+const REVERB_CAL = 5.40; // game reverb wet level vs this page's (normalised) convolver
+const ECHO_CAL = 1.597;  // game echo wet level vs this page's delay line
 const $ = id => document.getElementById(id);
 let song = null, rendered = null, playing = null, ctxLive = null;
 
@@ -269,8 +290,10 @@ function playMelodic(ctx, inst, out, f, t, d, v) {
         g.gain.setTargetAtTime(0, stopAt, Math.max(r, 0.02) / 4);
         g.connect(dest);
         for (const L of sp.layers) {
-          const lg = ctx.createGain(); lg.gain.value = L.g ?? 1; lg.connect(g);
-          osc(ctx, L.w, f * Math.pow(2, (L.o || 0)), t, stopAt + r + 0.3, lg, L.c || 0);
+          const lg = ctx.createGain(); lg.gain.value = (L.g ?? 1) * (GAME_SYNTH.has(inst) ? WAVE_CAL[L.w] : 1); lg.connect(g);
+          const fl = f * Math.pow(2, (L.o || 0));
+          // random phase per layer, like the game's random loop start, so detuned stacks don't spike
+          osc(ctx, L.w, fl, t + Math.random() / fl, stopAt + r + 0.3, lg, L.c || 0);
         }
         break;
       }
@@ -309,27 +332,38 @@ function playDrum(ctx, noise, out, p, t, v, kit) {
   else if (p === 49) noiseHit(ctx, noise, out, t, v * 0.32, "highpass", 5000, 0.5, 0.55);
 }
 
+// internals exposed for calibration tooling
+window.__bw = { playMelodic: (...a) => playMelodic(...a), playDrum: (...a) => playDrum(...a), driveCurve, impulse, noiseBuf, instScale, drumScale };
+
 async function renderSong(s, onProgress) {
   const stepDur = 60 / s.bpm / 4, total = s.bars * 16, length = total * stepDur + 3;
   const ctx = new OfflineAudioContext(2, Math.ceil(length * SR), SR);
   const noise = noiseBuf(ctx, 3);
-  const master = ctx.createGain(); master.gain.value = s.master; master.connect(ctx.destination);
+  // Same gain staging as the game (no auto-normalising), with a transparent limiter so loud moments can't clip
+  const master = ctx.createGain(); master.gain.value = s.master;
+  const limiter = ctx.createDynamicsCompressor(); limiter.threshold.value = -1.5; limiter.knee.value = 0; limiter.ratio.value = 20;
+  limiter.attack.value = 0.001; limiter.release.value = 0.12; master.connect(limiter);
+  // final safety: untouched below 0.9, rounds off anything the limiter is too slow to catch
+  const clip = ctx.createWaveShaper(), cv = new Float32Array(4096);
+  for (let i = 0; i < cv.length; i++) { const x = i * 2 / (cv.length - 1) - 1, ax = Math.abs(x); cv[i] = ax < 0.9 ? x : Math.sign(x) * (0.9 + 0.099 * Math.tanh((ax - 0.9) / 0.099)); }
+  clip.curve = cv; limiter.connect(clip); clip.connect(ctx.destination);
   const anySolo = s.tracks.some(t => t.solo);
   const events = [];
   for (const tr of s.tracks) {
     if (tr.mute || (anySolo && !tr.solo)) continue;
     const input = ctx.createGain(); let node = input;
-    if (tr.fx.dist > 0.01) { const ws = ctx.createWaveShaper(); ws.curve = driveCurve(0.15 + tr.fx.dist * 0.8); ws.oversample = "2x"; node.connect(ws); node = ws; }
+    if (tr.fx.dist > 0.01) { const lvl = 0.15 + tr.fx.dist * 0.8, ws = ctx.createWaveShaper(), mk = ctx.createGain(); ws.curve = driveCurve(lvl); ws.oversample = "2x";
+      mk.gain.value = distMakeup(lvl); node.connect(ws); ws.connect(mk); node = mk; }
     if (Math.abs(tr.fx.tone) > 0.02) { const hs = ctx.createBiquadFilter(); hs.type = "highshelf"; hs.frequency.value = 3000; hs.gain.value = tr.fx.tone < 0 ? tr.fx.tone * 24 : tr.fx.tone * 9;
       const ls = ctx.createBiquadFilter(); ls.type = "lowshelf"; ls.frequency.value = 250; ls.gain.value = -tr.fx.tone * 5; node.connect(hs); hs.connect(ls); node = ls; }
     if (tr.fx.chorus > 0.01) { const dry = ctx.createGain(), mix = ctx.createGain(), dl = ctx.createDelay(0.05), lfo = ctx.createOscillator(), dep = ctx.createGain();
       dl.delayTime.value = 0.018; lfo.frequency.value = 0.8; dep.gain.value = 0.004; lfo.connect(dep); dep.connect(dl.delayTime); lfo.start(0);
-      const wet = ctx.createGain(); wet.gain.value = tr.fx.chorus * 0.8; node.connect(dry); node.connect(dl); dl.connect(wet); dry.connect(mix); wet.connect(mix); node = mix; }
+      const m = tr.fx.chorus * 0.8, wet = ctx.createGain(); wet.gain.value = m; dry.gain.value = 1 - m; node.connect(dry); node.connect(dl); dl.connect(wet); dry.connect(mix); wet.connect(mix); node = mix; }
     const vol = ctx.createGain(); vol.gain.value = tr.vol * 1.25; node.connect(vol); vol.connect(master);
     if (tr.fx.echo > 0.01) { const dl = ctx.createDelay(2), fb = ctx.createGain(), wet = ctx.createGain();
-      dl.delayTime.value = Math.min(1.5, Math.max(0.05, 60 / s.bpm * 0.75)); fb.gain.value = 0.2 + tr.fx.echo * 0.35; wet.gain.value = dbToGain(-24 + tr.fx.echo * 20);
+      dl.delayTime.value = Math.min(1.5, Math.max(0.05, 60 / s.bpm * 0.75)); fb.gain.value = 0.2 + tr.fx.echo * 0.35; wet.gain.value = dbToGain(-24 + tr.fx.echo * 20) * ECHO_CAL;
       vol.connect(dl); dl.connect(fb); fb.connect(dl); dl.connect(wet); wet.connect(master); }
-    if (tr.fx.reverb > 0.01) { const cv = ctx.createConvolver(), wet = ctx.createGain(); cv.buffer = impulse(ctx, 0.8 + tr.fx.reverb * 3); wet.gain.value = dbToGain(-26 + tr.fx.reverb * 24) * 1.6;
+    if (tr.fx.reverb > 0.01) { const cv = ctx.createConvolver(), wet = ctx.createGain(); cv.buffer = impulse(ctx, 0.8 + tr.fx.reverb * 3); wet.gain.value = dbToGain(-26 + tr.fx.reverb * 24) * REVERB_CAL;
       vol.connect(cv); cv.connect(wet); wet.connect(master); }
     for (const n of tr.notes) {
       const t = n.s * stepDur + (n.s % 2 ? s.swing * stepDur * 0.5 : 0) + 0.01;
@@ -344,8 +378,8 @@ async function renderSong(s, onProgress) {
   const scheduleUntil = (until) => {
     while (next < events.length && events[next].t < until) {
       const { t, tr, input, n } = events[next++];
-      if (tr.drum) playDrum(ctx, noise, input, n.p, t, n.v, KIT_OF[tr.inst] || "classic");
-      else playMelodic(ctx, tr.inst, input, mtof(n.p + tr.tune), t, n.l * stepDur * 0.97, n.v);
+      if (tr.drum) { const kit = KIT_OF[tr.inst] || "classic"; playDrum(ctx, noise, input, n.p, t, n.v * drumScale(kit, n.p), kit); }
+      else playMelodic(ctx, tr.inst, input, mtof(n.p + tr.tune), t, n.l * stepDur * 0.97, n.v * instScale(tr.inst));
     }
   };
   const windows = Math.ceil(length / WIN);
@@ -359,9 +393,8 @@ async function renderSong(s, onProgress) {
   scheduleUntil(WIN);
   const buf = await ctx.startRendering();
   if (onProgress) onProgress(1);
-  // normalize to -1 dBFS, then trim trailing silence
-  let peak = 0; for (let c = 0; c < 2; c++) { const d = buf.getChannelData(c); for (let i = 0; i < d.length; i++) peak = Math.max(peak, Math.abs(d[i])); }
-  const gain = peak > 0 ? 0.89 / peak : 1;
+  // keep the game's levels exactly (no normalising); just trim trailing silence
+  const gain = 1;
   let last = Math.ceil(total * stepDur * SR);
   for (let c = 0; c < 2; c++) { const d = buf.getChannelData(c); for (let i = d.length - 1; i > last; i--) if (Math.abs(d[i] * gain) > 0.0008) { last = i; break; } }
   return { buf, gain, frames: Math.min(buf.length, last + Math.floor(SR * 0.1)) };
